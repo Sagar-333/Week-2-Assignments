@@ -20,6 +20,32 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3001
+
+// app.get('/files',(req,res)=>{
+//   var files = fs.readdirSync(__dirname + '/files')
+//   res.json(files);
+// })
+
+// app.get('/files/:filename',(req,res)=>{
+//   var filename = req.params.filename
+//   res.sendFile(__dirname+'/files'+'/'+filename);
+// })
+
+app.get('/files',(req,res)=>{
+  fs.readdir(path.join(__dirname,'./files/'),(err,files)=>{
+    if (err) throw err;
+    res.json(files)
+  })
+})
+
+app.get('/file/:filename',(req,res)=>{
+  const filepath = path.join(__dirname,'/files',req.params.filename)
+  res.sendFile(filepath);
+})
 
 
-module.exports = app;
+app.listen(port,()=>{
+  console.log(`Example app listening on port ${port}`)
+})
+// module.exports = app;

@@ -31,7 +31,88 @@
 
 const express = require("express")
 const PORT = 3000;
+const bodyParser = require('body-parser');
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
-module.exports = app;
+app.use(bodyParser.json());
+
+var authData = []
+
+app.post('/signup',(req,res)=>{
+  const userInfo = {
+    ID : Math.floor(Math.random()*1000),
+    username : req.body.username,
+    password : req.body.password,
+    firstname : req.body.firstname,
+    lastname : req.body.lastname
+  }
+  let exists = false
+  for (let i = 0; i < authData.length; i++) {
+    if(authData[i].username === userInfo.username){
+      exists = true;
+      break;
+    }
+  }
+  if(exists){
+    res.status(400).send("username already exists");
+  }else{
+    authData.push(userInfo);
+    res.status(201).send("signup successful");
+  }
+});
+
+app.post('/login',(req,res)=>{
+  const logUser=req.body.username;
+  const logPass=req.body.password;
+  let exists = false;
+  let index = -1;
+  for (let i = 0; i < authData.length; i++) {
+    if (authData[i].username === logUser && authData[i].password===logPass) {
+      exists=true;
+      index=i;
+      break;
+    }
+  }
+  if(!exists){
+    res.status(400).send("Invalid credentials")
+  }else{
+    const showData = {
+      ID : authData[index].ID,
+      firstname : authData[index].username,
+      lastname : authData[index].lastname
+    }
+    res.status(201).json(showData)
+  }
+})
+
+app.get('/data',(req,res)=>{
+  const logUser=req.body.username;
+  const logPass=req.body.password;
+  let exists = false;
+  for (let i = 0; i < authData.length; i++) {
+    if (authData[i].username === logUser && authData[i].password===logPass) {
+      exists=true;
+      break;
+    }
+  }
+  if (exists) {
+    let showUser=[]
+    for (let i = 0; i < authData.length; i++) {
+      showUser.push({
+        username : authData[i].username,
+        firstname : authData[i].firstname,
+        lastname : authData[i].lastname
+      })  
+    }
+    res.json({showUser});
+  } else {
+    res.status(400).send("Invalid Creds")
+  }
+})
+
+app.listen(PORT,()=>{
+  console.log(`Example app listening on port ${PORT}`)
+})
+
+// module.exports = app;

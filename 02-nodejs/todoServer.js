@@ -41,9 +41,93 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require('fs');
 const app = express();
+const port = 3000
+let path = __dirname+"/todos.json"
 
 app.use(bodyParser.json());
 
-module.exports = app;
+app.get('/todos',(req,res) =>{
+  fs.readFile(path,function(err,data){
+    if(err) throw err;
+    const info = JSON.parse(data);
+    const filterInfo = info.filter(todo=>todo.Completed === "False"); // filter is used to filter the data 
+    res.json(filterInfo);
+  })
+})
+
+app.get('/todos/:id',(req,res)=>{
+  fs.readFile(path,function(err,data){
+    if(err) throw err;
+    const info = JSON.parse(data);
+    const ID = parseInt(req.params.id); // parseInt is done bcz id is a string we have to convert it into an int
+    res.json(info[ID]);
+  })
+})
+
+app.post('/addTodo',(req,res)=>{
+  let newTodo = {
+    ID : Math.floor(Math.random() * 1000000),
+    title : req.body.Title,
+    Completed : "False",
+    description : req.body.Description
+  };
+  fs.readFile(path, "utf8", (err, data) => {
+    if (err) throw err;
+    const info = JSON.parse(data);
+    info.push(newTodo);
+    fs.writeFile(path, JSON.stringify(info), (err) => {
+      if (err) throw err;
+      res.status(201).send(newTodo);
+    });
+  });
+})
+
+app.put('/updateTodo/:id',(req,res)=>{
+  fs.readFile(path, "utf8", (err,data) =>{
+    if (err) throw err;
+    const info = JSON.parse(data);
+    const ID = parseInt(req.params.id);
+    var index = 0 ;
+    for (let i = 0; i < info.length; i++) {
+      if (info[i].ID===ID) {
+        index = i;
+      }
+    }
+    info[index] = {
+      ID : ID,
+      title : req.body.title,
+      completed : "True",
+      description : req.body.description
+    }
+    fs.writeFile(path, JSON.stringify(info), (err) =>{
+      if (err) throw err;
+      res.status(201).send(info);
+    })
+  })
+})
+
+app.delete('/deleteTodo/:id', (req,res)=>{
+  fs.readFile(path, "utf8", (err, data) => {
+    if (err) throw err;
+    const ID = parseInt(req.params.id)
+    const info = JSON.parse(data);
+    var newArray = []
+    for (let i = 0; i < info.length; i++) {
+      const arrID = parseInt(info[i].ID)
+      if (arrID !== ID) {
+        newArray.push(info[i]);
+      }
+    }
+    fs.writeFile(path, JSON.stringify(newArray), (err) =>{
+      if (err) throw err;
+      res.status(201).send(newArray);
+    })
+  });
+})
+
+app.listen(port, ()=>{
+  console.log(`Example app listening on port ${port}`)
+})
+// module.exports = app;
