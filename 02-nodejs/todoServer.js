@@ -41,15 +41,18 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path')
 const fs = require('fs');
 const app = express();
+const cors = require('cors');
 const port = 3000
-let path = __dirname+"/todos.json"
+let path2 = __dirname+"/todos.json"
 
 app.use(bodyParser.json());
+app.use(cors());
 
-app.get('/todos',(req,res) =>{
-  fs.readFile(path,function(err,data){
+app.post('/todos',(req,res) =>{
+  fs.readFile(path2,function(err,data){
     if(err) throw err;
     const info = JSON.parse(data);
     const filterInfo = info.filter(todo=>todo.Completed === "False"); // filter is used to filter the data 
@@ -58,7 +61,7 @@ app.get('/todos',(req,res) =>{
 })
 
 app.get('/todos/:id',(req,res)=>{
-  fs.readFile(path,function(err,data){
+  fs.readFile(path2,function(err,data){
     if(err) throw err;
     const info = JSON.parse(data);
     const ID = parseInt(req.params.id); // parseInt is done bcz id is a string we have to convert it into an int
@@ -73,7 +76,7 @@ app.post('/addTodo',(req,res)=>{
     Completed : "False",
     description : req.body.Description
   };
-  fs.readFile(path, "utf8", (err, data) => {
+  fs.readFile(path2, "utf8", (err, data) => {
     if (err) throw err;
     const info = JSON.parse(data);
     info.push(newTodo);
@@ -85,7 +88,7 @@ app.post('/addTodo',(req,res)=>{
 })
 
 app.put('/updateTodo/:id',(req,res)=>{
-  fs.readFile(path, "utf8", (err,data) =>{
+  fs.readFile(path2, "utf8", (err,data) =>{
     if (err) throw err;
     const info = JSON.parse(data);
     const ID = parseInt(req.params.id);
@@ -101,7 +104,7 @@ app.put('/updateTodo/:id',(req,res)=>{
       completed : "True",
       description : req.body.description
     }
-    fs.writeFile(path, JSON.stringify(info), (err) =>{
+    fs.writeFile(path2, JSON.stringify(info), (err) =>{
       if (err) throw err;
       res.status(201).send(info);
     })
@@ -109,7 +112,7 @@ app.put('/updateTodo/:id',(req,res)=>{
 })
 
 app.delete('/deleteTodo/:id', (req,res)=>{
-  fs.readFile(path, "utf8", (err, data) => {
+  fs.readFile(path2, "utf8", (err, data) => {
     if (err) throw err;
     const ID = parseInt(req.params.id)
     const info = JSON.parse(data);
@@ -120,11 +123,16 @@ app.delete('/deleteTodo/:id', (req,res)=>{
         newArray.push(info[i]);
       }
     }
-    fs.writeFile(path, JSON.stringify(newArray), (err) =>{
+    fs.writeFile(path2, JSON.stringify(newArray), (err) =>{
       if (err) throw err;
       res.status(201).send(newArray);
     })
   });
+})
+
+app.get('/',(req,res)=>{
+  res.sendFile(path.join(__dirname,"index.html"));
+  // this is done to solve CORS error
 })
 
 app.listen(port, ()=>{
