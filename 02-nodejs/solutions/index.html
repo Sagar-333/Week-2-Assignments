@@ -5,8 +5,17 @@
 
 </head>
 <script>
+    function deleteDone() {
+        console.log("done Delete");
+    }
+
     function deleteTodo(id) {
-        
+        fetch("http://localhost:3000/todos/"+id, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(deleteDone);
     }
 
     function todosCallback(data) {
